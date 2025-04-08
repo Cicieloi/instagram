@@ -1,0 +1,37 @@
+{
+  "messages": [
+    {
+      "username": "cici.eloi",
+      "room": "marketing",
+      "text": "oiii",
+      "timestamp": "2025-04-08T01:07:24.213Z"
+    },
+    {
+      "username": "guilherme",
+      "room": "geral",
+      "text": "oii",
+      "timestamp": "2025-04-08T01:09:42.979Z"
+    },
+    {
+      "username": "cici.eloi",
+      "room": "marketing",
+      "text": "olá",
+      "timestamp": "2025-04-08T01:09:51.342Z"
+    }
+  ],
+  "users": [
+    {
+      "username": "cici.eloi",
+      "password": "$2b$10$XhdCFSsuTMjmsu9buKE/OelwCj3febTh0CZ5u.vJ5qL2Tt1JJdE3q"
+    },
+    {
+      "username": "guilherme",
+      "password": "$2b$10$FfTtVzAjFmIerkQg8Dx48eWHoiol4xP51XdN/6PYOzPT1KOe2LtEu"
+    }
+  ],
+  "rooms": [
+    "geral",
+    "dev",
+    "marketing"
+  ]
+}

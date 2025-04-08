@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat - Instagram</title>
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f0f2f5;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 450px;
+      height: 90%;
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      font-size: 2rem;
+      font-weight: bold;
+      padding: 15px;
+      background-color: #0095f6;
+      color: #fff;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      margin: 0;
+    }
+
+    #messages {
+      list-style-type: none;
+      margin: 0;
+      padding: 15px;
+      flex-grow: 1;
+      overflow-y: auto;
+      max-height: 400px;
+      background-color: #fff;
+    }
+
+    #messages li {
+      padding: 10px;
+      margin-bottom: 12px;
+      background-color: #f4f4f4;
+      border-radius: 20px;
+      position: relative;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .message-author {
+      font-weight: bold;
+      color: #0095f6;
+    }
+
+    .message-time {
+      font-size: 0.8rem;
+      color: #bbb;
+      position: absolute;
+      bottom: 5px;
+      right: 10px;
+    }
+
+    #form {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      border-top: 1px solid #ddd;
+    }
+
+    #input {
+      flex-grow: 1;
+      padding: 12px;
+      font-size: 14px;
+      border-radius: 25px;
+      border: 1px solid #ddd;
+      background-color: #f9f9f9;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    #input:focus {
+      background-color: #fff;
+      border-color: #0095f6;
+    }
+
+    button {
+      padding: 12px 20px;
+      background-color: #0095f6;
+      color: #fff;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-left: 10px;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #007bb5;
+    }
+
+    .emoji {
+      font-size: 22px;
+      cursor: pointer;
+      margin-right: 10px;
+      transition: transform 0.2s ease-in-out;
+    }
+
+    .emoji:hover {
+      transform: scale(1.2);
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    .loading {
+      text-align: center;
+      padding: 10px;
+      color: #0095f6;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <h1>Chat - Instagram </h1>
+    <ul id="messages">
+      <li class="loading">Carregando mensagens...</li>
+    </ul>
+    <form id="form">
+      <input id="input" autocomplete="off" placeholder="Digite sua mensagem..." />
+      <button>Enviar</button>
+      <span class="emoji" onclick="insertEmoji('😊')">😊</span>
+      <span class="emoji" onclick="insertEmoji('😎')">😎</span>
+      <span class="emoji" onclick="insertEmoji('❤️')">❤️</span>
+    </form>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const messages = document.getElementById('messages');
+
+    const username = prompt('Qual é o seu nome?') || 'Anônimo'; // Pega o nome do usuário
+
+    socket.emit('join', username); // Envia o nome para o servidor
+
+    socket.on('previous messages', (msgs) => {
+      document.querySelector('.loading').style.display = 'none'; // Remove a mensagem de carregamento
+      msgs.forEach(msg => {
+        const item = document.createElement('li');
+        item.innerHTML = `<span class="message-author">${msg.username}</span>: ${msg.text} <small class="message-time">${msg.timestamp}</small>`;
+        messages.appendChild(item);
+      });
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (input.value) {
+        socket.emit('chat message', input.value); // Envia a mensagem para o servidor
+        input.value = ''; // Limpa o campo
+      }
+    });
+
+    function insertEmoji(emoji) {
+      input.value += emoji;
+      input.focus();
+    }
+
+    socket.on('chat message', (msg) => {
+      const item = document.createElement('li');
+      item.innerHTML = `<span class="message-author">${msg.username}</span>: ${msg.text} <small class="message-time">${msg.timestamp}</small>`;
+      messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    socket.on('user joined', (username) => {
+      const item = document.createElement('li');
+      item.className = 'notification';
+      item.textContent = `${username} entrou no chat`;
+      messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    socket.on('user left', (username) => {
+      const item = document.createElement('li');
+      item.className = 'notification';
+      item.textContent = `${username} saiu do chat`;
+      messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    socket.on('user typing', (username) => {
+      const typingIndicator = document.createElement('li');
+      typingIndicator.className = 'notification';
+      typingIndicator.textContent = `${username} está digitando...`;
+      typingIndicator.id = 'typing-indicator';
+      messages.appendChild(typingIndicator);
+      messages.scrollTop = messages.scrollHeight;
+    });
+
+    input.addEventListener('input', () => {
+      socket.emit('typing', username); // Enviar o aviso para os outros usuários
+    });
+  </script>
+</body>
+</html>
